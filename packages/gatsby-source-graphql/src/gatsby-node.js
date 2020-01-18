@@ -51,8 +51,14 @@ exports.sourceNodes = async (
     link = createHttpLink({
       uri: url,
       fetch,
-      headers,
       fetchOptions,
+      headers: await Promise.all(
+        Object.keys(headers).map(async name  => {
+          return typeof headers[name] === 'function' ? { [name]: await headers[name]() } : { [name]: headers[name] };
+        })
+      ).then(a => a.reduce((acc, cur) => {
+        return Object.assign(acc, cur);
+      }, {})),
     })
   }
 
